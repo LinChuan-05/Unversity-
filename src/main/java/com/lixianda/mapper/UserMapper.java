@@ -57,4 +57,13 @@ public interface UserMapper {
 
     @Update("UPDATE users SET password = #{password} WHERE userId = #{userId}")
     int updatePassword(@Param("userId") Integer userId, @Param("password") String password);
+
+    @Insert("INSERT INTO sys_class (class_name) VALUES (#{className})")
+    int insertClass(@Param("className") String className);
+
+    @Select("SELECT * FROM users WHERE role = 'student' AND (class_id IS NULL OR class_id = 0)")
+    List<Users> findUnassignedStudents();
+
+    @Update("UPDATE users SET class_id = #{classId} WHERE userId = #{userId}")
+    int assignClass(@Param("userId") Integer userId, @Param("classId") Integer classId);
 }

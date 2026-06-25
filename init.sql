@@ -122,8 +122,8 @@ CREATE TABLE IF NOT EXISTS reset_request (
 -- ============================================
 
 -- 默认班级
-INSERT IGNORE INTO sys_class (class_name) VALUES ('软件工程2412班');
--- 默认管理员（class_id = 1 关联班级表）
+INSERT IGNORE INTO sys_class (class_name) VALUES ('软件工程2411班'), ('软件工程2412班');
+-- 默认管理员
 INSERT IGNORE INTO users (userName, password, real_name, sex, email, role, status, class_id) VALUES ('admin', 'admin123', '管理员', '男', 'admin@test.com', 'admin', 1, NULL);
 
 -- 示例科目（含抽题数、状态）

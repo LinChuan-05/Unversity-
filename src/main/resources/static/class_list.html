@@ -8,8 +8,7 @@
     <style>
         body { background:#f0f2f5; padding:24px; }
         .group-card { border-radius:12px; overflow:hidden; box-shadow:0 2px 12px rgba(0,0,0,.08); margin-bottom:20px; }
-        .group-header { background:#fff; padding:14px 20px; display:flex; align-items:center;
-                        justify-content:space-between; cursor:pointer; border-bottom:2px solid #e9ecef; user-select:none; }
+        .group-header { background:#fff; padding:14px 20px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; border-bottom:2px solid #e9ecef; user-select:none; }
         .group-header:hover { background:#f8f9fa; }
         .group-header .arrow { transition:transform .3s; font-size:12px; }
         .group-header.collapsed .arrow { transform:rotate(-90deg); }
@@ -19,27 +18,61 @@
         .score-good { color:#198754; font-weight:700; }
         .score-bad  { color:#dc3545; font-weight:700; }
         .score-na   { color:#adb5bd; }
+        .add-card { border-radius:12px;box-shadow:0 1px 8px rgba(0,0,0,.06); }
+        .unassigned-card { border-radius:12px;box-shadow:0 1px 8px rgba(0,0,0,.06); margin-bottom:16px; }
     </style>
 </head>
 <body>
     <div class="container-fluid" style="max-width:1200px;">
         <h5 class="fw-bold text-secondary mb-3">🏫 班级管理</h5>
+
+        <!-- 创建班级 + 未分配学生 -->
+        <div class="row g-3 mb-3">
+            <div class="col-md-4">
+                <div class="card add-card border-0">
+                    <div class="card-body">
+                        <form id="createClassForm" class="d-flex gap-2">
+                            <input class="form-control form-control-sm" name="className" placeholder="班级名称 如: 软工2411班" required>
+                            <button type="submit" class="btn btn-primary btn-sm rounded-pill">创建</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="card unassigned-card border-0" id="unassignedCard" style="display:none;">
+                    <div class="card-header bg-warning text-dark py-2"><b>⚠ 未分配学生</b>（拖入下方班级即可分配）</div>
+                    <div class="card-body py-2">
+                        <select id="targetClass" class="form-select form-select-sm d-inline w-auto me-2"><option value="">选择目标班级</option></select>
+                        <button class="btn btn-sm btn-success rounded-pill" id="batchAssignBtn">批量分配</button>
+                        <div id="unassignedList" class="mt-2 d-flex flex-wrap gap-1"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div id="classArea">加载中...</div>
+        <div id="msg" class="text-center text-success mt-3 small"></div>
     </div>
     <script src="/myWeb/js/common.js"></script>
     <script>
-    (async()=>{
+    let allClasses = [];
+
+    async function loadAll(){
         const res = await $get('/api/user/classes');
         if(res.code!==200||!res.data||!res.data.length){
-            document.getElementById('classArea').innerHTML='<div class="text-center py-5 text-muted"><h1>📭</h1><p>暂无班级数据，请先在注册时填写班级</p></div>';
+            document.getElementById('classArea').innerHTML='<div class="text-center py-5 text-muted"><h1>📭</h1><p>暂无班级，请先创建</p></div>';
             return;
         }
-        // res.data 是对象数组 [{class_id:1, class_name:"xxx"}, ...]
-        const classList = res.data;
+        allClasses = res.data;
+        renderClasses();
+        loadUnassigned();
+    }
+
+    function renderClasses(){
         let html = '';
-        for (let i = 0; i < classList.length; i++) {
-            const cls = classList[i];
-            const className = cls.class_name || cls.className || '未命名班级';
+        for (let i = 0; i < allClasses.length; i++) {
+            const cls = allClasses[i];
+            const className = cls.class_name || cls.className || '未命名';
             const collapsed = i > 0 ? 'collapsed' : '';
             const show = i === 0 ? '' : 'd-none';
             html += `<div class="group-card">
@@ -53,10 +86,10 @@
             </div>`;
         }
         document.getElementById('classArea').innerHTML = html;
-        for (let i = 0; i < classList.length; i++) {
-            loadClassStudents(classList[i], i);
+        for (let i = 0; i < allClasses.length; i++) {
+            loadClassStudents(allClasses[i], i);
         }
-    })();
+    }
 
     async function loadClassStudents(cls, idx) {
         const className = cls.class_name || cls.className || '';
@@ -71,36 +104,25 @@
             document.getElementById('body_' + idx).innerHTML = '<div class="text-center py-3 text-muted">该班级暂无学生</div>';
             return;
         }
-        // 按学生分组
         const studentMap = {};
         const examNames = new Set();
         data.forEach(r => {
             const uid = r.userId;
-            if (!studentMap[uid]) {
-                studentMap[uid] = { userName: r.userName||r.realName||r.userId, sex: r.sex||'', email: r.email||'', scores: {} };
-            }
-            if (r.examName) {
-                examNames.add(r.examName);
-                studentMap[uid].scores[r.examName] = { total: r.totalScore || 0, count: r.answerCount || 0 };
-            }
+            if (!studentMap[uid]) studentMap[uid] = { userName: r.userName||r.realName||r.userId, sex: r.sex||'', scores: {} };
+            if (r.examName) { examNames.add(r.examName); studentMap[uid].scores[r.examName] = { total: r.totalScore || 0, count: r.answerCount || 0 }; }
         });
         const examList = [...examNames];
         document.getElementById('cnt_' + idx).innerText = Object.keys(studentMap).length + ' 人';
-
         let html = '<div class="table-card"><table class="table table-borderless align-middle mb-0"><thead><tr><th>姓名</th><th>性别</th>';
-        examList.forEach(en => { html += '<th class="text-center">' + en + '</th>'; });
+        examList.forEach(en => html += '<th class="text-center">' + en + '</th>');
         html += '<th class="text-center">总成绩</th></tr></thead><tbody>';
         Object.values(studentMap).forEach(s => {
             html += `<tr><td><b>${s.userName}</b></td><td>${s.sex}</td>`;
             let totalAll = 0;
             examList.forEach(en => {
                 const sc = s.scores[en];
-                if (sc && sc.count > 0) {
-                    html += `<td class="text-center score-${sc.total >= 60 ? 'good' : 'bad'}">${sc.total} 分</td>`;
-                    totalAll += sc.total;
-                } else {
-                    html += '<td class="text-center score-na">未考</td>';
-                }
+                if (sc && sc.count > 0) { html += `<td class="text-center score-${sc.total >= 60 ? 'good' : 'bad'}">${sc.total} 分</td>`; totalAll += sc.total; }
+                else html += '<td class="text-center score-na">未考</td>';
             });
             html += `<td class="text-center fw-bold">${totalAll} 分</td></tr>`;
         });
@@ -108,10 +130,51 @@
         document.getElementById('body_' + idx).innerHTML = html;
     }
 
-    function toggleGroup(el, id) {
-        el.classList.toggle('collapsed');
-        document.getElementById(id).classList.toggle('d-none');
+    async function loadUnassigned(){
+        const res = await $get('/api/user/unassignedStudents');
+        const card = document.getElementById('unassignedCard');
+        if(res.code!==200||!res.data||!res.data.length){ card.style.display='none'; return; }
+        card.style.display='block';
+        let html = '';
+        res.data.forEach(s => { html += `<span class="badge bg-secondary p-2" style="cursor:pointer" onclick="quickAssign(${s.userId})" title="点击分配">${s.userName||s.realName} ${s.userId}</span>`; });
+        document.getElementById('unassignedList').innerHTML = html || '<span class="text-muted small">无</span>';
+        // 填充目标班级下拉
+        const sel = document.getElementById('targetClass');
+        sel.innerHTML = '<option value="">选择目标班级</option>';
+        allClasses.forEach(c => { sel.innerHTML += `<option value="${c.class_id||c.classId}">${c.class_name||c.className}</option>`; });
     }
+
+    async function quickAssign(userId){
+        const classId = document.getElementById('targetClass').value;
+        if(!classId){ alert('请先选择目标班级'); return; }
+        const res = await $post('/api/user/assignClass', {userId, classId});
+        document.getElementById('msg').innerText = res.msg;
+        if(res.code===200){ loadAll(); }
+    }
+
+    document.getElementById('batchAssignBtn').addEventListener('click', async ()=>{
+        const classId = document.getElementById('targetClass').value;
+        if(!classId){ alert('请选择目标班级'); return; }
+        const res1 = await $get('/api/user/unassignedStudents');
+        if(res1.code!==200||!res1.data) return;
+        for(const s of res1.data){
+            await $post('/api/user/assignClass', {userId:s.userId, classId});
+        }
+        document.getElementById('msg').innerText = '批量分配完成';
+        loadAll();
+    });
+
+    document.getElementById('createClassForm').addEventListener('submit', async e=>{
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(e.target));
+        const res = await $post('/api/user/createClass', data);
+        document.getElementById('msg').innerText = res.msg;
+        if(res.code===200){ e.target.reset(); loadAll(); }
+    });
+
+    function toggleGroup(el, id){ el.classList.toggle('collapsed'); document.getElementById(id).classList.toggle('d-none'); }
+
+    loadAll();
     </script>
 </body>
 </html>

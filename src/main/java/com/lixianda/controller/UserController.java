@@ -58,4 +58,26 @@ public class UserController {
     public Result classStudents(@RequestParam String className) {
         return Result.ok("ok", userService.findClassStudentsWithScores(className));
     }
+
+    /** 管理员：创建班级 */
+    @PostMapping("/createClass")
+    public Result createClass(@RequestParam String className) {
+        int r = userService.createClass(className);
+        if (r == 1) return Result.ok("班级创建成功");
+        if (r == -1) return Result.fail(400, "班级已存在");
+        return Result.fail(500, "创建失败");
+    }
+
+    /** 管理员：获取尚未分配班级的学生 */
+    @GetMapping("/unassignedStudents")
+    public Result unassignedStudents() {
+        return Result.ok("ok", userService.findUnassignedStudents());
+    }
+
+    /** 管理员：将学生分配到班级 */
+    @PostMapping("/assignClass")
+    public Result assignClass(@RequestParam Integer userId, @RequestParam Integer classId) {
+        userService.assignClass(userId, classId);
+        return Result.ok("分配成功");
+    }
 }

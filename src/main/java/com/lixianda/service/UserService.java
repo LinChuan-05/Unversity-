@@ -48,4 +48,16 @@ public class UserService {
     public boolean isAdmin(Users user) { return user != null && "admin".equals(user.getRole()); }
     public List<Map<String, Object>> findAllClasses() { return userMapper.findAllClasses(); }
     public List<Map<String, Object>> findClassStudentsWithScores(String className) { return userMapper.findClassStudentsWithScores(className); }
+
+    public int createClass(String className) {
+        List<Map<String, Object>> existing = userMapper.findAllClasses();
+        for (Map<String, Object> c : existing) {
+            if (className.equals(c.get("class_name"))) return -1;
+        }
+        return userMapper.insertClass(className);
+    }
+
+    public List<Users> findUnassignedStudents() { return userMapper.findUnassignedStudents(); }
+
+    public void assignClass(Integer userId, Integer classId) { userMapper.assignClass(userId, classId); }
 }
