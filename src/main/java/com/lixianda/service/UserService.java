@@ -2,8 +2,8 @@ package com.lixianda.service;
 
 import com.lixianda.entity.Users;
 import com.lixianda.mapper.UserMapper;
+import com.lixianda.util.BCryptUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
@@ -14,38 +14,29 @@ public class UserService {
     @Autowired
     private UserMapper userMapper;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
     public Users login(String userName, String rawPassword) {
         Users user = userMapper.login(userName, rawPassword);
-        if (user != null) {
-            // BCrypt 验证
-            if (user.getPassword().length() > 10 && user.getPassword().startsWith("$2")) {
-                return passwordEncoder.matches(rawPassword, user.getPassword()) ? user : null;
-            }
-            // 兼容明文密码（首次迁移）
-            if (rawPassword.equals(user.getPassword())) {
-                // 自动升级为 BCrypt
-                userMapper.updatePassword(user.getUserId(), passwordEncoder.encode(rawPassword));
-                return user;
-            }
+        if (user == null) return null;
+        // BCrypt 密文验证
+        if (BCryptUtil.isBCrypt(user.getPassword())) {
+            return BCryptUtil.matches(rawPassword, user.getPassword()) ? user : null;
+        }
+        // 兼容老明文密码，验证后自动升级
+        if (rawPassword.equals(user.getPassword())) {
+            userMapper.updatePassword(user.getUserId(), BCryptUtil.encode(rawPassword));
+            return user;
         }
         return null;
     }
 
     public int register(Users user) {
-        if (user.getRole() == null || user.getRole().isEmpty()) {
-            user.setRole("student");
-        }
+        if (user.getRole() == null || user.getRole().isEmpty()) user.setRole("student");
         if (user.getStatus() == null) user.setStatus(1);
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setPassword(BCryptUtil.encode(user.getPassword()));
         return userMapper.insert(user);
     }
 
-    public List<Users> findAll() {
-        return userMapper.findAll();
-    }
+    public List<Users> findAll() { return userMapper.findAll(); }
 
     public int delete(Integer userId, Users currentUser) {
         if (currentUser != null && currentUser.getUserId().equals(userId)) return -1;
@@ -54,15 +45,7 @@ public class UserService {
         return userMapper.deleteById(userId);
     }
 
-    public boolean isAdmin(Users user) {
-        return user != null && "admin".equals(user.getRole());
-    }
-
-    public List<Map<String, Object>> findAllClasses() {
-        return userMapper.findAllClasses();
-    }
-
-    public List<Map<String, Object>> findClassStudentsWithScores(String className) {
-        return userMapper.findClassStudentsWithScores(className);
-    }
+    public boolean isAdmin(Users user) { return user != null && "admin".equals(user.getRole()); }
+    public List<Map<String, Object>> findAllClasses() { return userMapper.findAllClasses(); }
+    public List<Map<String, Object>> findClassStudentsWithScores(String className) { return userMapper.findClassStudentsWithScores(className); }
 }
