@@ -37,7 +37,7 @@ public class QuestionService {
         return questionMapper.update(question);
     }
 
-    public List<Question> findRandByExamId(Integer examId) {
-        return questionMapper.findRandByExamId(examId);
+    public List<Question> findRandByExamId(Integer examId, int limit) {
+        return questionMapper.findRandByExamId(examId, limit);
     }
 }

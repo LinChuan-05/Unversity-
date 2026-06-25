@@ -36,7 +36,7 @@
             html+=`<div class="col-md-6 col-lg-4"><div class="card exam-card shadow-sm ${canTake?'':'bg-light text-muted'}">
                 <div class="card-body text-center">
                     <h5 class="card-title">${e.name}</h5>
-                    <p class="mb-1 text-secondary">⏱ ${e.duration} 分钟 | 🔄 可考 ${e.maxAttempts||1} 次</p>
+                    <p class="mb-1 text-secondary">⏱ ${e.duration} 分钟 | 📝 抽${e.questionCount||4}题 | 总分100</p>
                     <p class="mb-2">已用 <b>${e.taken||0}</b> 次 | 剩余 <b class="text-${remaining>0?'success':'danger'}">${remaining}</b> 次</p>
                     ${canTake?`<a href="/myWeb/exam.html?examId=${e.examId}&duration=${e.duration}&name=${encodeURIComponent(e.name)}" class="btn btn-primary" target="right">进入考试</a>`
                     :'<span class="badge bg-danger">次数已用完</span>'}

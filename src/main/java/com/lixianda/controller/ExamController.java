@@ -90,9 +90,10 @@ public class ExamController {
             return Result.fail(403, "该科目考试次数已用完（最多 " + exam.getMaxAttempts() + " 次）");
         }
 
-        List<Question> questions = questionService.findRandByExamId(examId);
-        if (questions == null || questions.size() < 4) {
-            return Result.fail(400, "该科目试题不足4道，无法考试");
+        int qCount = exam.getQuestionCount() != null ? exam.getQuestionCount() : 4;
+        List<Question> questions = questionService.findRandByExamId(examId, qCount);
+        if (questions == null || questions.size() < qCount) {
+            return Result.fail(400, "该科目试题不足" + qCount + "道，无法考试");
         }
 
         long deadline = System.currentTimeMillis() + exam.getDuration() * 60L * 1000L;
@@ -107,7 +108,7 @@ public class ExamController {
         session.setAttribute("examInfo", exam);
         session.setAttribute("examExamId", examId);
 
-        int maxScore = questions.stream().mapToInt(q -> q.getScore() != null ? q.getScore() : 25).sum();
+        int maxScore = 100;
 
         Map<String, Object> extra = new LinkedHashMap<>();
         extra.put("questions", questions);

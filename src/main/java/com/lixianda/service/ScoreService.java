@@ -8,14 +8,19 @@ import java.util.*;
 @Service
 public class ScoreService {
 
+    /**
+     * 自动判分，每题分值 = 100 / 题数，余数分配给最后一题
+     */
     public List<Map<String, Object>> scoreDetail(List<Question> questionList, Map<String, String> answers) {
         List<Map<String, Object>> details = new ArrayList<>();
         int totalScore = 0;
-        int maxScore = 0;
+        int count = questionList.size();
+        int baseScore = 100 / count;
+        int remainder = 100 % count;
 
-        for (Question question : questionList) {
-            Integer qScore = question.getScore() != null ? question.getScore() : 25;
-            maxScore += qScore;
+        for (int i = 0; i < count; i++) {
+            Question question = questionList.get(i);
+            int qScore = (i == count - 1) ? baseScore + remainder : baseScore;
 
             String correctAnswer = question.getAnswer();
             Integer questionId = question.getQuestionId();
@@ -37,9 +42,9 @@ public class ScoreService {
 
         Map<String, Object> summary = new LinkedHashMap<>();
         summary.put("totalScore", totalScore);
-        summary.put("maxScore", maxScore);
-        summary.put("questionCount", questionList.size());
-        summary.put("message", getResultMessage(totalScore, maxScore));
+        summary.put("maxScore", 100);
+        summary.put("questionCount", count);
+        summary.put("message", getResultMessage(totalScore, 100));
         details.add(summary);
         return details;
     }

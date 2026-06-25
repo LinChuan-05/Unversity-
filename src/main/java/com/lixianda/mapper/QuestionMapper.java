@@ -35,8 +35,8 @@ public interface QuestionMapper {
     Question findById(@Param("questionId") Integer questionId);
 
     @ResultMap("questionMap")
-    @Select("SELECT questionId, title, optionA, optionB, optionC, optionD, answer, examId, score FROM question WHERE examId = #{examId} ORDER BY RAND() LIMIT 4")
-    List<Question> findRandByExamId(@Param("examId") Integer examId);
+    @Select("SELECT questionId, title, optionA, optionB, optionC, optionD, answer, examId, score FROM question WHERE examId = #{examId} ORDER BY RAND() LIMIT #{limit}")
+    List<Question> findRandByExamId(@Param("examId") Integer examId, @Param("limit") int limit);
 
     @Delete("DELETE FROM question WHERE questionId = #{questionId}")
     int deleteById(@Param("questionId") Integer questionId);
