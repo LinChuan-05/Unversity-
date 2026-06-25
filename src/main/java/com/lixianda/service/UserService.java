@@ -60,4 +60,9 @@ public class UserService {
     public List<Users> findUnassignedStudents() { return userMapper.findUnassignedStudents(); }
 
     public void assignClass(Integer userId, Integer classId) { userMapper.assignClass(userId, classId); }
+
+    public void deleteClass(Integer classId) {
+        userMapper.unassignStudentsByClassId(classId);
+        userMapper.deleteClass(classId);
+    }
 }

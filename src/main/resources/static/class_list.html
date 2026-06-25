@@ -43,8 +43,8 @@
                     <div class="card-header bg-warning text-dark py-2"><b>⚠ 未分配学生</b>（拖入下方班级即可分配）</div>
                     <div class="card-body py-2">
                         <select id="targetClass" class="form-select form-select-sm d-inline w-auto me-2"><option value="">选择目标班级</option></select>
-                        <button class="btn btn-sm btn-success rounded-pill" id="batchAssignBtn">批量分配</button>
-                        <div id="unassignedList" class="mt-2 d-flex flex-wrap gap-1"></div>
+                        <button class="btn btn-sm btn-success rounded-pill" id="batchAssignBtn">分配选中学生</button>
+                        <div id="unassignedList" class="mt-2" style="max-height:200px;overflow-y:auto"></div>
                     </div>
                 </div>
             </div>
@@ -78,7 +78,10 @@
             html += `<div class="group-card">
                 <div class="group-header ${collapsed}" onclick="toggleGroup(this,'cls_${i}')">
                     <span><b>📖 ${className}</b> <span class="badge bg-primary ms-2" id="cnt_${i}">加载中...</span></span>
-                    <span class="arrow">▼</span>
+                    <span>
+                        <button class="btn btn-outline-danger btn-sm rounded-pill px-2 me-2" onclick="event.stopPropagation();delClass('${className}',${cls.class_id||cls.classId})">删除班级</button>
+                        <span class="arrow">▼</span>
+                    </span>
                 </div>
                 <div id="cls_${i}" class="${show}">
                     <div id="body_${i}" class="text-center py-3 text-muted">加载中...</div>
@@ -136,13 +139,29 @@
         if(res.code!==200||!res.data||!res.data.length){ card.style.display='none'; return; }
         card.style.display='block';
         let html = '';
-        res.data.forEach(s => { html += `<span class="badge bg-secondary p-2" style="cursor:pointer" onclick="quickAssign(${s.userId})" title="点击分配">${s.userName||s.realName} ${s.userId}</span>`; });
+        res.data.forEach(s => {
+            html += `<label class="d-block mb-1" style="cursor:pointer">
+                <input type="checkbox" class="unassigned-check" value="${s.userId}">
+                <span class="badge bg-secondary">${s.userName || s.realName || ('用户#'+s.userId)}</span>
+            </label>`;
+        });
         document.getElementById('unassignedList').innerHTML = html || '<span class="text-muted small">无</span>';
-        // 填充目标班级下拉
         const sel = document.getElementById('targetClass');
         sel.innerHTML = '<option value="">选择目标班级</option>';
         allClasses.forEach(c => { sel.innerHTML += `<option value="${c.class_id||c.classId}">${c.class_name||c.className}</option>`; });
     }
+
+    document.getElementById('batchAssignBtn').addEventListener('click', async ()=>{
+        const classId = document.getElementById('targetClass').value;
+        if(!classId){ alert('请先选择目标班级'); return; }
+        const checks = document.querySelectorAll('.unassigned-check:checked');
+        if(!checks.length){ alert('请至少勾选一个学生'); return; }
+        for(const cb of checks){
+            await $post('/api/user/assignClass', {userId: cb.value, classId});
+        }
+        document.getElementById('msg').innerText = `已分配 ${checks.length} 名学生`;
+        loadAll();
+    });
 
     async function quickAssign(userId){
         const classId = document.getElementById('targetClass').value;
@@ -152,18 +171,6 @@
         if(res.code===200){ loadAll(); }
     }
 
-    document.getElementById('batchAssignBtn').addEventListener('click', async ()=>{
-        const classId = document.getElementById('targetClass').value;
-        if(!classId){ alert('请选择目标班级'); return; }
-        const res1 = await $get('/api/user/unassignedStudents');
-        if(res1.code!==200||!res1.data) return;
-        for(const s of res1.data){
-            await $post('/api/user/assignClass', {userId:s.userId, classId});
-        }
-        document.getElementById('msg').innerText = '批量分配完成';
-        loadAll();
-    });
-
     document.getElementById('createClassForm').addEventListener('submit', async e=>{
         e.preventDefault();
         const data = Object.fromEntries(new FormData(e.target));
@@ -171,6 +178,13 @@
         document.getElementById('msg').innerText = res.msg;
         if(res.code===200){ e.target.reset(); loadAll(); }
     });
+
+    async function delClass(className, classId){
+        if(!confirm(`确认删除班级「${className}」？该班级下的学生将变为未分配状态。`)) return;
+        const res = await $del('/api/user/deleteClass', {classId});
+        document.getElementById('msg').innerText = res.msg;
+        if(res.code===200) loadAll();
+    }
 
     function toggleGroup(el, id){ el.classList.toggle('collapsed'); document.getElementById(id).classList.toggle('d-none'); }
 

@@ -66,4 +66,10 @@ public interface UserMapper {
 
     @Update("UPDATE users SET class_id = #{classId} WHERE userId = #{userId}")
     int assignClass(@Param("userId") Integer userId, @Param("classId") Integer classId);
+
+    @Update("UPDATE users SET class_id = NULL WHERE class_id = #{classId}")
+    int unassignStudentsByClassId(@Param("classId") Integer classId);
+
+    @Delete("DELETE FROM sys_class WHERE class_id = #{classId}")
+    int deleteClass(@Param("classId") Integer classId);
 }

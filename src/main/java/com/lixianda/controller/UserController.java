@@ -80,4 +80,11 @@ public class UserController {
         userService.assignClass(userId, classId);
         return Result.ok("分配成功");
     }
+
+    /** 管理员：删除班级，旗下学生变未分配 */
+    @DeleteMapping("/deleteClass")
+    public Result deleteClass(@RequestParam Integer classId) {
+        userService.deleteClass(classId);
+        return Result.ok("班级已删除");
+    }
 }
