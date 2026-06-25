@@ -50,6 +50,10 @@ async function $del(url, data) {
         method: 'DELETE',
         credentials: 'same-origin'
     });
+    if (!resp.ok) {
+        const text = await resp.text();
+        throw new Error(text || resp.statusText);
+    }
     return resp.json();
 }
 

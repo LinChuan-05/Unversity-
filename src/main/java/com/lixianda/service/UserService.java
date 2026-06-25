@@ -32,6 +32,9 @@ public class UserService {
         if (currentUser != null && currentUser.getUserId().equals(userId)) {
             return -1;
         }
+        // 级联删除关联数据
+        userMapper.deleteRecordsByUserId(userId);
+        userMapper.deleteRequestsByUserId(userId);
         return userMapper.deleteById(userId);
     }
 

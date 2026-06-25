@@ -28,4 +28,11 @@ public interface UserMapper {
 
     @Delete("DELETE FROM users WHERE userId = #{userId}")
     int deleteById(@Param("userId") Integer userId);
+
+    // 级联删除：先清除关联数据
+    @Delete("DELETE FROM exam_record WHERE userId = #{userId}")
+    int deleteRecordsByUserId(@Param("userId") Integer userId);
+
+    @Delete("DELETE FROM reset_request WHERE userId = #{userId}")
+    int deleteRequestsByUserId(@Param("userId") Integer userId);
 }

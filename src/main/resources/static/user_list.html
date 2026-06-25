@@ -60,9 +60,14 @@
     })();
     async function del(userId){
         if(!confirm('确认删除该用户？'))return;
-        const res=await $del('/api/user/delete',{userId});
-        document.getElementById('msg').innerText=res.msg;
-        if(res.code===200)setTimeout(()=>location.reload(),800);
+        try{
+            const res=await $del('/api/user/delete',{userId});
+            if(!res){document.getElementById('msg').innerText='请求失败';return;}
+            document.getElementById('msg').innerText=res.msg||JSON.stringify(res);
+            if(res.code===200)setTimeout(()=>location.reload(),800);
+        }catch(e){
+            document.getElementById('msg').innerText='删除失败：'+(e.message||'未知错误');
+        }
     }
     </script>
 </body>
