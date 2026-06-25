@@ -13,18 +13,29 @@
             <div class="card-body">
                 <form id="qForm">
                     <div class="mb-3"><label class="form-label">所属科目</label><select class="form-select" name="examId" id="examSelect" required><option value="">加载中...</option></select></div>
-                    <div class="mb-3"><label class="form-label">题目</label><input type="text" class="form-control" name="title" required></div>
-                    <div class="row g-2">
-                        <div class="col-6"><label class="form-label">A 选项</label><input type="text" class="form-control" name="optionA" required></div>
-                        <div class="col-6"><label class="form-label">B 选项</label><input type="text" class="form-control" name="optionB" required></div>
-                        <div class="col-6"><label class="form-label">C 选项</label><input type="text" class="form-control" name="optionC" required></div>
-                        <div class="col-6"><label class="form-label">D 选项</label><input type="text" class="form-control" name="optionD" required></div>
+                    <div class="mb-3"><label class="form-label">题型</label>
+                        <select class="form-select" name="questionType" id="qType" required>
+                            <option value="1">单选题</option>
+                            <option value="4">简答题</option>
+                        </select>
                     </div>
-                    <div class="mb-3 mt-3"><label class="form-label">正确答案</label>
+                    <div class="mb-3"><label class="form-label">题目</label><input type="text" class="form-control" name="title" required></div>
+                    <div class="row g-2" id="optionsRow">
+                        <div class="col-6"><label class="form-label">A 选项</label><input type="text" class="form-control" name="optionA"></div>
+                        <div class="col-6"><label class="form-label">B 选项</label><input type="text" class="form-control" name="optionB"></div>
+                        <div class="col-6"><label class="form-label">C 选项</label><input type="text" class="form-control" name="optionC"></div>
+                        <div class="col-6"><label class="form-label">D 选项</label><input type="text" class="form-control" name="optionD"></div>
+                    </div>
+                    <div class="mb-3 mt-3" id="answerRadioRow">
+                        <label class="form-label">正确答案</label>
                         <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="answer" value="A" checked><label class="form-check-label">A</label></div>
                         <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="answer" value="B"><label class="form-check-label">B</label></div>
                         <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="answer" value="C"><label class="form-check-label">C</label></div>
                         <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="answer" value="D"><label class="form-check-label">D</label></div>
+                    </div>
+                    <div class="mb-3 d-none" id="answerTextRow">
+                        <label class="form-label">参考答案</label>
+                        <textarea class="form-control" name="answerText" rows="3" placeholder="简答题参考答案"></textarea>
                     </div>
                     <div class="mb-3"><label class="form-label">分值</label><input type="number" class="form-control" name="score" value="25" min="1" max="100" style="width:100px" required></div>
                     <button type="submit" class="btn btn-success w-100">添加试题</button>
@@ -40,9 +51,20 @@
         const sel=document.getElementById('examSelect');sel.innerHTML='';
         if(res.code===200&&res.data)res.data.forEach(e=>{sel.innerHTML+=`<option value="${e.examId}">${e.name}</option>`;});
     })();
+    document.getElementById('qType').addEventListener('change',function(){
+        const isSub=this.value==='4';
+        document.getElementById('optionsRow').classList.toggle('d-none',isSub);
+        document.getElementById('answerRadioRow').classList.toggle('d-none',isSub);
+        document.getElementById('answerTextRow').classList.toggle('d-none',!isSub);
+    });
     document.getElementById('qForm').addEventListener('submit',async e=>{
         e.preventDefault();
         const data=Object.fromEntries(new FormData(e.target));
+        if(data.questionType==='4'){
+            data.answer=data.answerText||'';
+            delete data.answerText;
+            data.optionA='';data.optionB='';data.optionC='';data.optionD='';
+        }
         const res=await $post('/api/question/add',data);
         document.getElementById('msg').innerText=res.msg;
     });

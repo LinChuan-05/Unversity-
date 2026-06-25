@@ -73,18 +73,25 @@
         if(!records.length){document.getElementById('historyArea').innerHTML='<div class="text-center py-5 text-muted"><h1>📭</h1><p>暂无考试记录</p></div>';return;}
         let html='<div class="table-card"><table class="table table-borderless align-middle mb-0"><thead><tr><th>考试时间</th><th>科目</th><th>时长</th><th class="text-center">得分</th><th class="text-center">结果</th><th style="width:100px">操作</th></tr></thead><tbody>';
         records.forEach(r=>{
+            const hasPending = (r.pendingCount||0) > 0;
             const total=r.totalScore||0;
-            const pct=total>=60?75:40; // 简化为合格线判断
-            const cls=pct>=80?'score-high':pct>=60?'score-mid':'score-low';
             const pass=total>=60;
             const examId=r.examId;
             const alreadyPending=pendingRequests.includes(examId);
             html+=`<tr>
                 <td class="text-muted small">${(r.examTime||'').substring(0,19)}</td><td><b>${r.examName||'-'}</b></td>
                 <td class="text-muted">${r.duration||'-'} 分钟</td>
-                <td class="text-center"><span class="score-ring ${cls}">${total}</span></td>
-                <td class="text-center"><span class="badge ${pass?'bg-success':'bg-danger'} rounded-pill px-3 py-2">${pass?'✓ 合格':'✗ 不合格'}</span></td>
-                <td>${alreadyPending
+                <td class="text-center">${hasPending
+                    ?'<span class="badge bg-warning text-dark">待批阅</span>'
+                    :`<span class="score-ring ${pass?'score-high':'score-low'}">${total}</span>`}
+                </td>
+                <td class="text-center">${hasPending
+                    ?'<span class="badge bg-info">批阅中</span>'
+                    :`<span class="badge ${pass?'bg-success':'bg-danger'} rounded-pill px-3 py-2">${pass?'✓ 合格':'✗ 不合格'}</span>`}
+                </td>
+                <td>${hasPending
+                    ?'<span class="text-muted small">批改后可申请</span>'
+                    :alreadyPending
                     ?'<span class="badge bg-info">审核中</span>'
                     :`<button class="btn btn-outline-warning btn-sm rounded-pill px-3" onclick="openApply(${examId},${total},'${r.examName}')">申请重考</button>`}</td></tr>`;
         });

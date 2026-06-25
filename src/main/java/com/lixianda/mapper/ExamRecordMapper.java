@@ -28,8 +28,10 @@ public interface ExamRecordMapper {
             "FROM exam_record GROUP BY userId ORDER BY lastExamTime DESC")
     List<Map<String, Object>> findAllUserScores();
 
-    /** 学生个人成绩汇总：按考试场次分组 */
-    @Select("SELECT er.examTime, er.examId, ex.name as examName, SUM(er.score) as totalScore, " +
+    /** 学生个人成绩汇总：按考试场次分组，含批阅状态 */
+    @Select("SELECT er.examTime, er.examId, ex.name as examName, " +
+            "SUM(er.score) as totalScore, " +
+            "SUM(CASE WHEN er.review_status = 1 THEN 1 ELSE 0 END) as pendingCount, " +
             "COUNT(*) as questionCount, MAX(ex.duration) as duration " +
             "FROM exam_record er LEFT JOIN exam ex ON er.examId = ex.examId " +
             "WHERE er.userId = #{userId} " +
@@ -57,7 +59,7 @@ public interface ExamRecordMapper {
             "FROM exam_record er " +
             "LEFT JOIN question q ON er.questionId = q.questionId " +
             "LEFT JOIN exam ex ON er.examId = ex.examId " +
-            "WHERE er.userId = #{userId} AND er.isCorrect = 0 " +
+            "WHERE er.userId = #{userId} AND er.isCorrect = 0 AND er.review_status != 1 " +
             "ORDER BY ex.name, er.examTime DESC")
     List<Map<String, Object>> findWrongAnswers(@Param("userId") Integer userId);
 
