@@ -49,8 +49,9 @@
     }
 
     async function grade(recordId){
-        const score = document.getElementById('score_'+recordId).value;
-        if(!score && score!=='0'){ alert('请输入分数'); return; }
+        const score = parseInt(document.getElementById('score_'+recordId).value);
+        if(isNaN(score)){ alert('请输入分数'); return; }
+        if(score < 0 || score > 40){ alert('分数需在 0-40 之间'); return; }
         const res = await $post('/api/exam/manualScore', {recordId, score});
         document.getElementById('msg').innerText = res.msg;
         if(res.code===200){

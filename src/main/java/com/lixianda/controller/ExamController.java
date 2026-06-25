@@ -267,6 +267,7 @@ public class ExamController {
     /** 管理员端：对简答题打分 */
     @PostMapping("/manualScore")
     public Result manualScore(@RequestParam Integer recordId, @RequestParam Integer score) {
+        if (score < 0 || score > 40) return Result.fail(400, "分数需在 0-40 之间");
         examRecordService.updateManualScore(recordId, score);
         return Result.ok("批阅成功");
     }

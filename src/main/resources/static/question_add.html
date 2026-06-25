@@ -60,11 +60,13 @@
     document.getElementById('qForm').addEventListener('submit',async e=>{
         e.preventDefault();
         const data=Object.fromEntries(new FormData(e.target));
-        if(data.questionType==='4'){
+        const isSub = data.questionType==='4';
+        if(isSub){
             data.answer=data.answerText||'';
-            delete data.answerText;
-            data.optionA='';data.optionB='';data.optionC='';data.optionD='';
+            data.optionA='-';data.optionB='-';data.optionC='-';data.optionD='-';
         }
+        delete data.answerText;
+        data.difficulty='2'; data.isUse='1';
         const res=await $post('/api/question/add',data);
         document.getElementById('msg').innerText=res.msg;
     });
