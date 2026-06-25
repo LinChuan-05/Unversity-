@@ -221,4 +221,12 @@ public class ExamController {
         int count = examRecordService.resetAttempts(userId, examId);
         return Result.ok("已清除 " + count + " 条记录，该学生可重新参加考试");
     }
+
+    /** 学生端：查看错题集 */
+    @GetMapping("/wrongAnswers")
+    public Result wrongAnswers(HttpSession session) {
+        Users user = (Users) session.getAttribute("user");
+        if (user == null) return Result.fail(401, "请先登录");
+        return Result.ok("ok", examRecordService.findWrongAnswers(user.getUserId()));
+    }
 }

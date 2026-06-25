@@ -69,7 +69,7 @@ CREATE DATABASE bjpowernode DEFAULT CHARACTER SET utf8mb4;
 ### 运行
 
 ```bash
-cd onlineQuiz
+cd Unversity_Test
 mvn spring-boot:run
 ```
 
@@ -79,7 +79,7 @@ mvn spring-boot:run
 
 ### 在 IDEA 中运行
 
-1. `File → Open` → 选择 `onlineQuiz` 文件夹
+1. `File → Open` → 选择 `Unversity_Test` 文件夹
 2. IDEA 会自动识别为 Maven 项目并下载依赖
 3. 右键 `OnlineQuizApplication.java` → Run
 
@@ -105,7 +105,7 @@ mvn --version
 
 ### 2. 解压项目
 
-将收到的压缩包解压到任意目录，例如 `C:\onlineQuiz`。
+将收到的压缩包解压到任意目录，例如 `C:\Unversity_Test`。
 
 ### 3. 初始化数据库
 
@@ -131,7 +131,7 @@ spring:
 ### 5. 启动项目
 
 ```bash
-cd onlineQuiz
+cd Unversity_Test
 mvn spring-boot:run
 ```
 

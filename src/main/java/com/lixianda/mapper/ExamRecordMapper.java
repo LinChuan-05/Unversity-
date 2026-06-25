@@ -50,4 +50,14 @@ public interface ExamRecordMapper {
     /** 管理员：清除某个学生对某科目的所有考试记录（允许重考） */
     @Delete("DELETE FROM exam_record WHERE userId = #{userId} AND examId = #{examId}")
     int deleteByUserIdAndExamId(@Param("userId") Integer userId, @Param("examId") Integer examId);
+
+    /** 学生端：查询某学生的所有错题（isCorrect=0），关联试题详情，按科目分组 */
+    @Select("SELECT er.recordId, er.userAnswer, er.examTime, er.examId, ex.name as examName, " +
+            "q.questionId, q.title, q.optionA, q.optionB, q.optionC, q.optionD, q.answer as correctAnswer, q.score as questionScore " +
+            "FROM exam_record er " +
+            "LEFT JOIN question q ON er.questionId = q.questionId " +
+            "LEFT JOIN exam ex ON er.examId = ex.examId " +
+            "WHERE er.userId = #{userId} AND er.isCorrect = 0 " +
+            "ORDER BY ex.name, er.examTime DESC")
+    List<Map<String, Object>> findWrongAnswers(@Param("userId") Integer userId);
 }

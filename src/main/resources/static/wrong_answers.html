@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>错题集</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background:#f0f2f5; padding:24px; }
+        .group-card { border-radius:12px; overflow:hidden; box-shadow:0 2px 12px rgba(0,0,0,.08); margin-bottom:20px; }
+        .group-header { background:#fff; padding:14px 20px; display:flex; align-items:center;
+                        justify-content:space-between; cursor:pointer; border-bottom:2px solid #e9ecef; user-select:none; }
+        .group-header:hover { background:#f8f9fa; }
+        .group-header .arrow { transition:transform .3s; font-size:12px; }
+        .group-header.collapsed .arrow { transform:rotate(-90deg); }
+        .wrong-item { border-left:4px solid #dc3545; margin:12px 16px; padding:12px 16px; background:#fff;
+                      border-radius:0 8px 8px 0; box-shadow:0 1px 4px rgba(0,0,0,.04); }
+        .wrong-item .correct-answer { color:#198754; font-weight:700; }
+        .wrong-item .user-answer { color:#dc3545; font-weight:700; text-decoration:line-through; }
+        .wrong-item .q-title { font-weight:600; margin-bottom:8px; }
+        .wrong-item .options { font-size:13px; color:#6c757d; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid" style="max-width:900px;">
+        <h5 class="fw-bold text-secondary mb-3">📝 我的错题集</h5>
+        <div id="wrongArea">加载中...</div>
+    </div>
+    <script src="/myWeb/js/common.js"></script>
+    <script>
+    (async()=>{
+        const res = await $get('/api/exam/wrongAnswers');
+        if(res.code!==200){document.getElementById('wrongArea').innerHTML=`<div class="alert alert-danger">${res.msg||'加载失败'}</div>`;return;}
+        const data = res.data||[];
+        if(!data.length){document.getElementById('wrongArea').innerHTML='<div class="text-center py-5 text-muted"><h1>🎉</h1><p>太棒了！没有错题记录</p></div>';return;}
+
+        // 按科目分组
+        const groups = {};
+        data.forEach(r => {
+            const ename = r.examName || '未分类';
+            if(!groups[ename]) groups[ename] = [];
+            groups[ename].push(r);
+        });
+
+        let html = '';
+        const examNames = Object.keys(groups);
+        examNames.forEach((ename, i) => {
+            const items = groups[ename];
+            const collapsed = i > 0 ? 'collapsed' : '';
+            const show = i === 0 ? '' : 'd-none';
+            html += `<div class="group-card">
+                <div class="group-header ${collapsed}" onclick="toggleGroup(this,'grp_${i}')">
+                    <span><b>📖 ${ename}</b> <span class="badge bg-danger ms-2">${items.length} 道错题</span></span>
+                    <span class="arrow">▼</span>
+                </div>
+                <div id="grp_${i}" class="${show}">`;
+            items.forEach(r => {
+                html += `<div class="wrong-item">
+                    <div class="q-title">${r.title}</div>
+                    <div class="options mb-2">A. ${r.optionA} | B. ${r.optionB} | C. ${r.optionC} | D. ${r.optionD}</div>
+                    <div>
+                        你的答案：<span class="user-answer">${r.userAnswer||'未作答'}</span>
+                        &nbsp;|&nbsp;
+                        正确答案：<span class="correct-answer">${r.correctAnswer}</span>
+                        &nbsp;|&nbsp;
+                        <span class="text-muted small">分值：${r.questionScore||25} 分</span>
+                    </div>
+                </div>`;
+            });
+            html += `</div></div>`;
+        });
+        document.getElementById('wrongArea').innerHTML = html;
+    })();
+
+    function toggleGroup(el, id){
+        el.classList.toggle('collapsed');
+        document.getElementById(id).classList.toggle('d-none');
+    }
+    </script>
+</body>
+</html>

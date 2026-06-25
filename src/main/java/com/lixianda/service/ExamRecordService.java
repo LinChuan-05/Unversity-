@@ -49,4 +49,9 @@ public class ExamRecordService {
     public int resetAttempts(Integer userId, Integer examId) {
         return examRecordMapper.deleteByUserIdAndExamId(userId, examId);
     }
+
+    /** 学生端：查询错题集 */
+    public List<Map<String, Object>> findWrongAnswers(Integer userId) {
+        return examRecordMapper.findWrongAnswers(userId);
+    }
 }

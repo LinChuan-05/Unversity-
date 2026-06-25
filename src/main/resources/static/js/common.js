@@ -88,7 +88,8 @@ async function loadSidebar() {
     if (res.code === 200 && res.data && res.data.role === 'student') {
         html += `<div class="menu-title">考试</div>
             <li class="menu-group"><a href="/myWeb/exam_select.html" target="right" class="menu-item"><i class="bi bi-pencil-square"></i> 参加考试</a></li>
-            <li class="menu-group"><a href="/myWeb/score_history.html" target="right" class="menu-item"><i class="bi bi-bar-chart"></i> 成绩查询</a></li>`;
+            <li class="menu-group"><a href="/myWeb/score_history.html" target="right" class="menu-item"><i class="bi bi-bar-chart"></i> 成绩查询</a></li>
+            <li class="menu-group"><a href="/myWeb/wrong_answers.html" target="right" class="menu-item"><i class="bi bi-journal-x"></i> 错题集</a></li>`;
     }
     html += '</ul>';
     sidebar.innerHTML = html;
