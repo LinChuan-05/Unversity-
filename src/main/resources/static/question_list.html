@@ -14,7 +14,7 @@
         .answer-badge { display:inline-block;width:26px;height:26px;line-height:26px;text-align:center;border-radius:6px;
                         background:#e9ecef;font-weight:700;color:#495057;font-size:13px; }
         .opt-text { font-size:13px;color:#6c757d;max-width:120px;display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle; }
-        .q-title { max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:middle; }
+        .q-title { max-width:250px; }
         .group-header { background:#fff; border-radius:12px 12px 0 0; padding:14px 20px; display:flex; align-items:center;
                         justify-content:space-between; cursor:pointer; border-bottom:2px solid #e9ecef; user-select:none; }
         .group-header:hover { background:#f8f9fa; }
@@ -74,18 +74,23 @@
             html += '</div>';
             html += '<div id="group_'+eid+'" class="'+show+'">';
             html += '<table class="table table-borderless align-middle mb-0 q-table">';
-            html += '<thead><tr><th>#</th><th>题目</th><th class="text-center">A</th><th class="text-center">B</th><th class="text-center">C</th><th class="text-center">D</th>';
+            html += '<thead><tr><th>#</th><th>题目</th><th class="text-center">A</th><th class="text-center">B</th><th class="text-center">C</th><th class="text-center">D</th><th class="text-center">题型</th>';
             if(isAdmin) html += '<th class="text-center">答案</th><th class="text-center">分值</th><th>操作</th>';
             html += '</tr></thead><tbody>';
             for(var j=0;j<qs.length;j++){
                 var q = qs[j];
-                var num = j + 1;
+                var isSub = (q.questionType === 4);
                 html += '<tr><td class="q-num text-muted small"></td>';
-                html += '<td><span class="q-title fw-semibold" title="'+q.title+'">'+q.title+'</span></td>';
-                html += '<td class="text-center"><span class="opt-text" title="'+q.optionA+'">'+q.optionA+'</span></td>';
-                html += '<td class="text-center"><span class="opt-text" title="'+q.optionB+'">'+q.optionB+'</span></td>';
-                html += '<td class="text-center"><span class="opt-text" title="'+q.optionC+'">'+q.optionC+'</span></td>';
-                html += '<td class="text-center"><span class="opt-text" title="'+q.optionD+'">'+q.optionD+'</span></td>';
+                if(isSub){
+                    html += '<td colspan="5"><span class="fw-semibold">'+q.title+'</span><span class="text-success ms-2 small">[参考答案：'+q.answer+']</span></td>';
+                }else{
+                    html += '<td><span class="q-title fw-semibold" title="'+q.title+'">'+q.title+'</span></td>';
+                    html += '<td class="text-center"><span class="opt-text" title="'+q.optionA+'">'+q.optionA+'</span></td>';
+                    html += '<td class="text-center"><span class="opt-text" title="'+q.optionB+'">'+q.optionB+'</span></td>';
+                    html += '<td class="text-center"><span class="opt-text" title="'+q.optionC+'">'+q.optionC+'</span></td>';
+                    html += '<td class="text-center"><span class="opt-text" title="'+q.optionD+'">'+q.optionD+'</span></td>';
+                }
+                html += '<td class="text-center"><span class="badge '+(isSub?'bg-warning text-dark':'bg-info')+'">'+(isSub?'简答':'单选')+'</span></td>';
                 if(isAdmin){
                     html += '<td class="text-center"><span class="answer-badge">'+q.answer+'</span></td>';
                     html += '<td class="text-center"><b>'+(q.score||25)+'</b></td>';
