@@ -99,11 +99,17 @@
         const data=Object.fromEntries(new FormData(f));
         const result=await $post('/api/exam/submit',data);
         const details=result.data||[];
-        let html=`<div class="card shadow-sm"><div class="card-header text-center"><h4>${result.msg}</h4></div><div class="card-body">
-            <table class="table table-bordered table-hover"><thead><tr><th>题号</th><th>题目</th><th>你的答案</th><th>正确答案</th><th>结果</th><th>得分</th></tr></thead><tbody>`;
-        let totalScore=0,maxScore=0,questionCount=0;
-        details.forEach(d=>{if(d.totalScore!==undefined){totalScore=d.totalScore;maxScore=d.maxScore||questionCount*25;questionCount=d.questionCount;return;};if(d.isCorrect===-1){html+=`<tr class="table-warning"><td>${d.questionId}</td><td>${d.title}</td><td>${d.userAnswer}</td><td>${d.correctAnswer}</td><td>⏳ 待批阅</td><td>0 / ${d.maxScore||25}</td></tr>`;}else{html+=`<tr class="${d.isCorrect?'table-success':'table-danger'}"><td>${d.questionId}</td><td>${d.title}</td><td>${d.userAnswer}</td><td>${d.correctAnswer}</td><td>${d.isCorrect?'✓ 正确':'✗ 错误'}</td><td>${d.score} / ${d.maxScore||25}</td></tr>`;}});
-        html+=`</tbody><tfoot><tr class="table-active fw-bold fs-5"><td colspan="4" class="text-end">总分：</td><td colspan="2">${totalScore} / ${maxScore}</td></tr></tfoot></table></div></div>`;
+        const hasSubjective = details.some(d=>d.pending===true);
+        let html=`<div class="card shadow-sm"><div class="card-header text-center"><h4>${result.msg}</h4></div><div class="card-body">`;
+        if(hasSubjective){
+            html+=`<div class="alert alert-warning text-center fs-5">⏳ ${result.msg}<br><small class="text-muted">请等待教师批阅简答题后查看最终成绩</small></div>`;
+        }else{
+            html+=`<table class="table table-bordered table-hover"><thead><tr><th>题号</th><th>题目</th><th>你的答案</th><th>正确答案</th><th>结果</th><th>得分</th></tr></thead><tbody>`;
+            let totalScore=0,maxScore=0,questionCount=0;
+            details.forEach(d=>{if(d.totalScore!==undefined){totalScore=d.totalScore;maxScore=d.maxScore||questionCount*25;questionCount=d.questionCount;return;};html+=`<tr class="${d.isCorrect?'table-success':'table-danger'}"><td>${d.questionId}</td><td>${d.title}</td><td>${d.userAnswer}</td><td>${d.correctAnswer}</td><td>${d.isCorrect?'✓ 正确':'✗ 错误'}</td><td>${d.score} / ${d.maxScore||25}</td></tr>`;});
+            html+=`</tbody><tfoot><tr class="table-active fw-bold fs-5"><td colspan="4" class="text-end">总分：</td><td colspan="2">${totalScore} / ${maxScore}</td></tr></tfoot></table>`;
+        }
+        html+=`</div></div>`;
         document.getElementById('scoreResult').innerHTML=html;document.getElementById('submitBtn').disabled=true;f.style.opacity='.6';f.style.pointerEvents='none';
     }
     </script>

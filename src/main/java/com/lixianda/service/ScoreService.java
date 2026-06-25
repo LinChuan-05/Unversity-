@@ -7,16 +7,14 @@ import java.util.*;
 @Service
 public class ScoreService {
 
-    /** 判分：客观题自动比对，主观题 (question_type=4) 跳过等人工批阅 */
     public List<Map<String, Object>> scoreDetail(List<Question> questionList, Map<String, String> answers) {
         List<Map<String, Object>> details = new ArrayList<>();
-        int objectiveTotal = 0, subjectiveMax = 0, totalMax = 0;
+        int objectiveTotal = 0, subjectiveMax = 0;
         int count = questionList.size();
 
-        // 客观题数量
         long objCount = questionList.stream().filter(q -> q.getQuestionType() == null || q.getQuestionType() != 4).count();
-        int objBase = objCount > 0 ? 100 / (int)objCount : 0;
-        int objRemainder = objCount > 0 ? 100 % (int)objCount : 0;
+        int objBase = objCount > 0 ? 100 / (int) objCount : 0;
+        int objRemainder = objCount > 0 ? 100 % (int) objCount : 0;
         int objIdx = 0;
 
         for (Question question : questionList) {
@@ -30,23 +28,20 @@ public class ScoreService {
             detail.put("questionType", qType);
 
             if (qType == 4) {
-                // 主观题：不自动判分，标记待批阅
                 detail.put("userAnswer", userAnswer != null ? userAnswer : "未作答");
                 detail.put("correctAnswer", question.getAnswer());
-                detail.put("isCorrect", -1); // -1 表示待批阅
+                detail.put("isCorrect", -1);
                 detail.put("score", 0);
                 detail.put("maxScore", question.getScore() != null ? question.getScore() : 40);
                 detail.put("pending", true);
                 subjectiveMax += (question.getScore() != null ? question.getScore() : 40);
             } else {
-                // 客观题
                 int qScore = (objIdx == objCount - 1) ? objBase + objRemainder : objBase;
                 objIdx++;
                 String correctAnswer = question.getAnswer();
                 boolean correct = userAnswer != null && userAnswer.equals(correctAnswer);
                 int earned = correct ? qScore : 0;
                 objectiveTotal += earned;
-
                 detail.put("userAnswer", userAnswer != null ? userAnswer : "未作答");
                 detail.put("correctAnswer", correctAnswer);
                 detail.put("isCorrect", correct ? 1 : 0);
@@ -54,27 +49,26 @@ public class ScoreService {
                 detail.put("maxScore", qScore);
                 detail.put("pending", false);
             }
-            totalMax += (Integer)detail.get("maxScore");
             details.add(detail);
         }
 
         Map<String, Object> summary = new LinkedHashMap<>();
+        summary.put("hasSubjective", subjectiveMax > 0);
+        summary.put("totalScore", objectiveTotal);
+        summary.put("maxScore", 100);
+        summary.put("questionCount", count);
         summary.put("objectiveScore", objectiveTotal);
         summary.put("subjectiveMax", subjectiveMax);
-        summary.put("totalScore", objectiveTotal + subjectiveMax);
-        summary.put("maxScore", Math.max(totalMax, 100));
-        summary.put("questionCount", count);
-        summary.put("hasSubjective", subjectiveMax > 0);
         summary.put("message", subjectiveMax > 0 ?
-            "客观题得分：" + objectiveTotal + " 分，简答题待教师批阅" :
-            getResultMessage(objectiveTotal, totalMax));
+            "试卷已提交，含简答题待教师批阅，批阅完成后可查看成绩" :
+            getResultMessage(objectiveTotal, 100));
         details.add(summary);
         return details;
     }
 
     public String getResultMessage(int score, int maxScore) {
         double ratio = maxScore > 0 ? (double) score / maxScore : 0;
-        if (ratio >= 1.0) return "恭喜！满分通过！" + score + " / " + maxScore + " 分";
+        if (ratio >= 1.0) return "满分通过！" + score + " / " + maxScore + " 分";
         if (ratio >= 0.6) return "合格！" + score + " / " + maxScore + " 分";
         return "不合格！" + score + " / " + maxScore + " 分";
     }
