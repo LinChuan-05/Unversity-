@@ -34,10 +34,12 @@
             document.getElementById('classArea').innerHTML='<div class="text-center py-5 text-muted"><h1>📭</h1><p>暂无班级数据，请先在注册时填写班级</p></div>';
             return;
         }
+        // res.data 是对象数组 [{class_id:1, class_name:"xxx"}, ...]
+        const classList = res.data;
         let html = '';
-        // 并发加载每个班级的学生成绩
-        for (let i = 0; i < res.data.length; i++) {
-            const className = res.data[i];
+        for (let i = 0; i < classList.length; i++) {
+            const cls = classList[i];
+            const className = cls.class_name || cls.className || '未命名班级';
             const collapsed = i > 0 ? 'collapsed' : '';
             const show = i === 0 ? '' : 'd-none';
             html += `<div class="group-card">
@@ -51,14 +53,13 @@
             </div>`;
         }
         document.getElementById('classArea').innerHTML = html;
-
-        // 异步加载每个班级的详细数据
-        for (let i = 0; i < res.data.length; i++) {
-            loadClassStudents(res.data[i], i);
+        for (let i = 0; i < classList.length; i++) {
+            loadClassStudents(classList[i], i);
         }
     })();
 
-    async function loadClassStudents(className, idx) {
+    async function loadClassStudents(cls, idx) {
+        const className = cls.class_name || cls.className || '';
         const sRes = await $get('/api/user/classStudents?className=' + encodeURIComponent(className));
         if (sRes.code !== 200 || !sRes.data) {
             document.getElementById('body_' + idx).innerHTML = '<div class="text-center py-3 text-danger">加载失败</div>';
@@ -67,31 +68,28 @@
         const data = sRes.data;
         if (!data.length) {
             document.getElementById('cnt_' + idx).innerText = '0 人';
-            document.getElementById('body_' + idx).innerHTML = '<div class="text-center py-3 text-muted">暂无学生</div>';
+            document.getElementById('body_' + idx).innerHTML = '<div class="text-center py-3 text-muted">该班级暂无学生</div>';
             return;
         }
-
-        // 将数据按学生分组
+        // 按学生分组
         const studentMap = {};
         const examNames = new Set();
         data.forEach(r => {
             const uid = r.userId;
             if (!studentMap[uid]) {
-                studentMap[uid] = { userName: r.userName, sex: r.sex, email: r.email, scores: {} };
+                studentMap[uid] = { userName: r.userName||r.realName||r.userId, sex: r.sex||'', email: r.email||'', scores: {} };
             }
             if (r.examName) {
                 examNames.add(r.examName);
-                studentMap[uid].scores[r.examName] = { total: r.totalScore || 0, count: r.answerCount || 0, last: r.lastExamTime };
+                studentMap[uid].scores[r.examName] = { total: r.totalScore || 0, count: r.answerCount || 0 };
             }
         });
         const examList = [...examNames];
-        const studentCount = Object.keys(studentMap).length;
-        document.getElementById('cnt_' + idx).innerText = studentCount + ' 人';
+        document.getElementById('cnt_' + idx).innerText = Object.keys(studentMap).length + ' 人';
 
         let html = '<div class="table-card"><table class="table table-borderless align-middle mb-0"><thead><tr><th>姓名</th><th>性别</th>';
         examList.forEach(en => { html += '<th class="text-center">' + en + '</th>'; });
         html += '<th class="text-center">总成绩</th></tr></thead><tbody>';
-
         Object.values(studentMap).forEach(s => {
             html += `<tr><td><b>${s.userName}</b></td><td>${s.sex}</td>`;
             let totalAll = 0;

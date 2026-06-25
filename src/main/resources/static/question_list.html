@@ -88,8 +88,8 @@
                         <thead><tr><th>#</th><th>题目</th><th class="text-center">A</th><th class="text-center">B</th><th class="text-center">C</th><th class="text-center">D</th>`;
             if(isAdmin)html+=`<th class="text-center">答案</th><th class="text-center">分值</th><th>操作</th>`;
             html+=`</tr></thead><tbody>`;
-            qs.forEach(q=>{
-                html+=`<tr><td class="text-muted small">#${q.questionId}</td>
+            qs.forEach((q,idx)=>{
+                html+=`<tr><td class="text-muted small">${idx+1}</td>
                     <td><span class="q-title fw-semibold" title="${q.title}">${q.title}</span></td>
                     <td class="text-center"><span class="opt-text" title="${q.optionA}">${q.optionA}</span></td>
                     <td class="text-center"><span class="opt-text" title="${q.optionB}">${q.optionB}</span></td>
