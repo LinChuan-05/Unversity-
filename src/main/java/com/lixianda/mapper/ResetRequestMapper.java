@@ -27,6 +27,6 @@ public interface ResetRequestMapper {
     @Update("UPDATE reset_request SET status = #{status} WHERE requestId = #{requestId}")
     int updateStatus(@Param("requestId") Integer requestId, @Param("status") String status);
 
-    @Select("SELECT * FROM reset_request WHERE userId = #{userId} AND examId = #{examId} AND status = 'pending'")
+    @Select("SELECT * FROM reset_request WHERE userId = #{userId} AND examId = #{examId} AND status = 'pending' LIMIT 1")
     ResetRequest findPending(@Param("userId") Integer userId, @Param("examId") Integer examId);
 }

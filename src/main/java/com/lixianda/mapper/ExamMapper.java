@@ -11,7 +11,7 @@ public interface ExamMapper {
     @Select("SELECT * FROM exam ORDER BY examId")
     List<Exam> findAll();
 
-    @Select("SELECT * FROM exam WHERE examId = #{examId}")
+    @Select("SELECT * FROM exam WHERE examId = #{examId} LIMIT 1")
     Exam findById(@Param("examId") Integer examId);
 
     @Insert("INSERT INTO exam(name, duration, description, maxAttempts) VALUES(#{name}, #{duration}, #{description}, #{maxAttempts})")

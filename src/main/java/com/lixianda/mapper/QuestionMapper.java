@@ -31,7 +31,7 @@ public interface QuestionMapper {
     List<Question> findByExamId(@Param("examId") Integer examId);
 
     @ResultMap("questionMap")
-    @Select("SELECT questionId, title, optionA, optionB, optionC, optionD, answer, examId, score FROM question WHERE questionId = #{questionId}")
+    @Select("SELECT questionId, title, optionA, optionB, optionC, optionD, answer, examId, score FROM question WHERE questionId = #{questionId} LIMIT 1")
     Question findById(@Param("questionId") Integer questionId);
 
     @ResultMap("questionMap")

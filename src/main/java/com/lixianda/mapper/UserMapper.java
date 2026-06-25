@@ -8,7 +8,7 @@ import java.util.List;
 @Mapper
 public interface UserMapper {
 
-    @Select("SELECT * FROM users WHERE userName = #{userName} AND password = #{password}")
+    @Select("SELECT * FROM users WHERE userName = #{userName} AND password = #{password} LIMIT 1")
     @Results({
         @Result(property = "userId", column = "userId"),
         @Result(property = "userName", column = "userName"),
