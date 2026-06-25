@@ -20,6 +20,9 @@
         .group-header:hover { background:#f8f9fa; }
         .group-header .arrow { transition:transform .3s; font-size:12px; }
         .group-header.collapsed .arrow { transform:rotate(-90deg); }
+        .q-table { counter-reset: qnum 0; }
+        .q-table tbody tr { counter-increment: qnum; }
+        .q-table .q-num::before { content: counter(qnum); }
     </style>
 </head>
 <body>
@@ -70,14 +73,14 @@
             html += '<span><span class="text-muted small me-3">总分：'+totalScore+' 分</span><span class="arrow">▼</span></span>';
             html += '</div>';
             html += '<div id="group_'+eid+'" class="'+show+'">';
-            html += '<table class="table table-borderless align-middle mb-0">';
+            html += '<table class="table table-borderless align-middle mb-0 q-table">';
             html += '<thead><tr><th>#</th><th>题目</th><th class="text-center">A</th><th class="text-center">B</th><th class="text-center">C</th><th class="text-center">D</th>';
             if(isAdmin) html += '<th class="text-center">答案</th><th class="text-center">分值</th><th>操作</th>';
             html += '</tr></thead><tbody>';
             for(var j=0;j<qs.length;j++){
                 var q = qs[j];
                 var num = j + 1;
-                html += '<tr><td class="text-muted small">'+num+'</td>';
+                html += '<tr><td class="q-num text-muted small"></td>';
                 html += '<td><span class="q-title fw-semibold" title="'+q.title+'">'+q.title+'</span></td>';
                 html += '<td class="text-center"><span class="opt-text" title="'+q.optionA+'">'+q.optionA+'</span></td>';
                 html += '<td class="text-center"><span class="opt-text" title="'+q.optionB+'">'+q.optionB+'</span></td>';
