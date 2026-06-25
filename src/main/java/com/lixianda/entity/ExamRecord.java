@@ -11,6 +11,8 @@ public class ExamRecord {
     private Integer score;
     private Date examTime;
     private Integer examId;
+    private Integer manualScore;
+    private Integer reviewStatus;
 
     public ExamRecord() {}
 
@@ -39,4 +41,8 @@ public class ExamRecord {
     public void setExamTime(Date examTime) { this.examTime = examTime; }
     public Integer getExamId() { return examId; }
     public void setExamId(Integer examId) { this.examId = examId; }
+    public Integer getManualScore() { return manualScore; }
+    public void setManualScore(Integer manualScore) { this.manualScore = manualScore; }
+    public Integer getReviewStatus() { return reviewStatus; }
+    public void setReviewStatus(Integer reviewStatus) { this.reviewStatus = reviewStatus; }
 }

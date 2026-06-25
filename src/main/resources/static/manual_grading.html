@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>人工批阅</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background:#f0f2f5; padding:24px; }
+        .review-card { border-radius:12px; box-shadow:0 2px 12px rgba(0,0,0,.08); margin-bottom:16px; }
+        .review-card .card-header { background:linear-gradient(135deg,#1a1a2e,#16213e);color:#fff; }
+        .score-input { width:80px; display:inline-block; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid" style="max-width:1000px;">
+        <h5 class="fw-bold text-secondary mb-3">📝 人工批阅</h5>
+        <div id="reviewArea">加载中...</div>
+        <div id="msg" class="text-center text-success mt-3 small"></div>
+    </div>
+    <script src="/myWeb/js/common.js"></script>
+    <script>
+    loadReviews();
+    async function loadReviews(){
+        const res = await $get('/api/exam/pendingReviews');
+        if(res.code!==200||!res.data||!res.data.length){
+            document.getElementById('reviewArea').innerHTML='<div class="text-center py-5 text-muted"><h1>📭</h1><p>暂无待批阅的简答题</p></div>';
+            return;
+        }
+        let html = '';
+        res.data.forEach(r => {
+            html += `<div class="card review-card" id="card_${r.recordId}">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><b>${r.userName}</b> — ${r.examName||''}</span>
+                    <span class="badge bg-light text-dark">满分 ${r.maxScore||40} 分</span>
+                </div>
+                <div class="card-body">
+                    <p><b>题目：</b>${r.title}</p>
+                    <p><b>参考答案：</b><span class="text-muted small">${r.referenceAnswer||'(无)'}</span></p>
+                    <p><b>学生作答：</b><span class="text-primary">${r.userAnswer||'(未作答)'}</span></p>
+                    <div class="input-group" style="max-width:200px">
+                        <input type="number" class="form-control form-control-sm score-input" id="score_${r.recordId}" min="0" max="${r.maxScore||40}" placeholder="打分">
+                        <button class="btn btn-success btn-sm" onclick="grade(${r.recordId})">确认评分</button>
+                    </div>
+                </div>
+            </div>`;
+        });
+        document.getElementById('reviewArea').innerHTML = html;
+    }
+
+    async function grade(recordId){
+        const score = document.getElementById('score_'+recordId).value;
+        if(!score && score!=='0'){ alert('请输入分数'); return; }
+        const res = await $post('/api/exam/manualScore', {recordId, score});
+        document.getElementById('msg').innerText = res.msg;
+        if(res.code===200){
+            document.getElementById('card_'+recordId).style.opacity = '.5';
+            setTimeout(()=>loadReviews(), 800);
+        }
+    }
+    </script>
+</body>
+</html>

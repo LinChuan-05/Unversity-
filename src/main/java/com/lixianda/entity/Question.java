@@ -11,6 +11,9 @@ public class Question {
     private String answer;
     private Integer examId;
     private Integer score;
+    private Integer questionType;
+    private Integer difficulty;
+    private Integer isUse;
 
     public Integer getQuestionId() { return questionId; }
     public void setQuestionId(Integer questionId) { this.questionId = questionId; }
@@ -30,6 +33,12 @@ public class Question {
     public void setExamId(Integer examId) { this.examId = examId; }
     public Integer getScore() { return score; }
     public void setScore(Integer score) { this.score = score; }
+    public Integer getQuestionType() { return questionType; }
+    public void setQuestionType(Integer questionType) { this.questionType = questionType; }
+    public Integer getDifficulty() { return difficulty; }
+    public void setDifficulty(Integer difficulty) { this.difficulty = difficulty; }
+    public Integer getIsUse() { return isUse; }
+    public void setIsUse(Integer isUse) { this.isUse = isUse; }
 
     public Question() {}
 }

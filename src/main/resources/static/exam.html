@@ -65,16 +65,21 @@
         let html='';
         questions.forEach((q,i)=>{
             const qScore = q.score || 25;
+            const isSubjective = q.questionType === 4;
             html+=`<div class="card question-card shadow-sm">
-                <div class="card-header">第${i+1}题：${q.title} <span class="badge bg-light text-dark float-end">${qScore} 分</span></div>
-                <div class="card-body">
-                    ${['A','B','C','D'].map(opt=>`
-                        <label class="option-label mb-2">
-                            <input type="radio" name="answer_${q.questionId}" value="${opt}">
-                            <b>${opt}.</b> ${q['option'+opt]}
-                        </label>`).join('')}
-                </div>
-            </div>`;
+                <div class="card-header">第${i+1}题：${q.title} <span class="badge ${isSubjective?'bg-warning text-dark':'bg-light text-dark'} float-end">${qScore} 分${isSubjective?' 简答题':''}</span></div>
+                <div class="card-body">`;
+            if (isSubjective) {
+                html+=`<textarea class="form-control" name="answer_${q.questionId}" rows="4" placeholder="请输入答案..."></textarea>`;
+            } else {
+                ['A','B','C','D'].forEach(opt=>{
+                    html+=`<label class="option-label mb-2">
+                        <input type="radio" name="answer_${q.questionId}" value="${opt}">
+                        <b>${opt}.</b> ${q['option'+opt]}
+                    </label>`;
+                });
+            }
+            html+=`</div></div>`;
         });
         document.getElementById('examArea').innerHTML=html;
         document.getElementById('examForm').addEventListener('submit',async e=>{e.preventDefault();await doSubmit();});
@@ -97,7 +102,7 @@
         let html=`<div class="card shadow-sm"><div class="card-header text-center"><h4>${result.msg}</h4></div><div class="card-body">
             <table class="table table-bordered table-hover"><thead><tr><th>题号</th><th>题目</th><th>你的答案</th><th>正确答案</th><th>结果</th><th>得分</th></tr></thead><tbody>`;
         let totalScore=0,maxScore=0,questionCount=0;
-        details.forEach(d=>{if(d.totalScore!==undefined){totalScore=d.totalScore;maxScore=d.maxScore||questionCount*25;questionCount=d.questionCount;return;};html+=`<tr class="${d.isCorrect?'table-success':'table-danger'}"><td>${d.questionId}</td><td>${d.title}</td><td>${d.userAnswer}</td><td>${d.correctAnswer}</td><td>${d.isCorrect?'✓ 正确':'✗ 错误'}</td><td>${d.score} / ${d.maxScore||25}</td></tr>`;});
+        details.forEach(d=>{if(d.totalScore!==undefined){totalScore=d.totalScore;maxScore=d.maxScore||questionCount*25;questionCount=d.questionCount;return;};if(d.isCorrect===-1){html+=`<tr class="table-warning"><td>${d.questionId}</td><td>${d.title}</td><td>${d.userAnswer}</td><td>${d.correctAnswer}</td><td>⏳ 待批阅</td><td>0 / ${d.maxScore||25}</td></tr>`;}else{html+=`<tr class="${d.isCorrect?'table-success':'table-danger'}"><td>${d.questionId}</td><td>${d.title}</td><td>${d.userAnswer}</td><td>${d.correctAnswer}</td><td>${d.isCorrect?'✓ 正确':'✗ 错误'}</td><td>${d.score} / ${d.maxScore||25}</td></tr>`;}});
         html+=`</tbody><tfoot><tr class="table-active fw-bold fs-5"><td colspan="4" class="text-end">总分：</td><td colspan="2">${totalScore} / ${maxScore}</td></tr></tfoot></table></div></div>`;
         document.getElementById('scoreResult').innerHTML=html;document.getElementById('submitBtn').disabled=true;f.style.opacity='.6';f.style.pointerEvents='none';
     }

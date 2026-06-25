@@ -50,7 +50,9 @@ public class LoginInterceptor implements HandlerInterceptor {
                 || uri.contains("/api/exam/resetAttempts")
                 || uri.contains("/api/exam/allRequests")
                 || uri.contains("/api/exam/approveReset")
-                || uri.contains("/api/exam/rejectReset");
+                || uri.contains("/api/exam/rejectReset")
+                || uri.contains("/api/exam/pendingReviews")
+                || uri.contains("/api/exam/manualScore");
 
         if (isAdminUri) {
             Users user = (Users) session.getAttribute("user");

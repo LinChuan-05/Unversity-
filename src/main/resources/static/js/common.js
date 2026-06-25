@@ -86,6 +86,7 @@ async function loadSidebar() {
             <div class="menu-title">考试管理</div>
             <li class="menu-group"><a href="/myWeb/exam_manage.html" target="right" class="menu-item"><i class="bi bi-journals"></i> 科目设置</a></li>
             <li class="menu-group"><a href="/myWeb/reset_exam.html" target="right" class="menu-item"><i class="bi bi-arrow-repeat"></i> 重考管理</a></li>
+            <li class="menu-group"><a href="/myWeb/manual_grading.html" target="right" class="menu-item"><i class="bi bi-pencil"></i> 人工批阅</a></li>
             <div class="menu-title">试题管理</div>
             <li class="menu-group"><a href="/myWeb/question_add.html" target="right" class="menu-item"><i class="bi bi-plus-circle"></i> 添加试题</a></li>
             <li class="menu-group"><a href="/myWeb/question_list.html" target="right" class="menu-item"><i class="bi bi-list-ul"></i> 试题列表</a></li>`;

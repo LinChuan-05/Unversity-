@@ -130,47 +130,39 @@ public class ExamController {
     @PostMapping("/submit")
     @Transactional
     public Result submit(@RequestParam Map<String, String> answers, HttpSession session) {
-        @SuppressWarnings("unchecked")
         List<Question> questions = (List<Question>) session.getAttribute("examQuestions");
-        Long deadline = (Long) session.getAttribute("examDeadline");
-        Integer examId = (Integer) session.getAttribute("examExamId");
         if (questions == null || questions.isEmpty()) {
             return Result.fail(400, "考试题目已过期，请重新进入考试");
         }
         Users user = (Users) session.getAttribute("user");
+        Integer examId = (Integer) session.getAttribute("examExamId");
         List<Map<String, Object>> details = scoreService.scoreDetail(questions, answers);
         int totalScore = 0, maxScore = 100;
         for (Map<String, Object> detail : details) {
-            if (detail.containsKey("totalScore")) {
-                totalScore = (int) detail.get("totalScore");
-                maxScore = (int) detail.get("maxScore");
-                break;
-            }
+            if (detail.containsKey("totalScore")) { totalScore = (int) detail.get("totalScore"); maxScore = (int) detail.get("maxScore"); break; }
+            int isCorrect = (int) detail.get("isCorrect");
+            int score = (int) detail.get("score");
             ExamRecord record = new ExamRecord(
-                user.getUserId(),
-                (Integer) detail.get("questionId"),
-                (String) detail.get("userAnswer"),
-                (Integer) detail.get("isCorrect"),
-                (Integer) detail.get("score"),
-                examId
+                user.getUserId(), (Integer) detail.get("questionId"),
+                (String) detail.get("userAnswer"), isCorrect >= 0 ? isCorrect : 0, score, examId
             );
+            // 主观题标记待批阅
+            if (isCorrect == -1) {
+                record.setReviewStatus(1); // 待批阅
+                record.setManualScore(0);
+            } else {
+                record.setReviewStatus(2); // 已批阅（客观题自动）
+            }
             examRecordService.save(record);
-            // 错题自动归档
-            if ((Integer) detail.get("isCorrect") == 0) {
-                examErrorQuestionMapper.upsert(
-                    user.getUserId(),
-                    (Integer) detail.get("questionId"),
-                    (String) detail.get("userAnswer"),
-                    (String) detail.get("correctAnswer")
-                );
+            if (isCorrect == 0) {
+                examErrorQuestionMapper.upsert(user.getUserId(), (Integer) detail.get("questionId"),
+                    (String) detail.get("userAnswer"), (String) detail.get("correctAnswer"));
             }
         }
-        session.removeAttribute("examQuestions");
-        session.removeAttribute("examDeadline");
-        session.removeAttribute("examInfo");
-        session.removeAttribute("examExamId");
+        session.removeAttribute("examQuestions"); session.removeAttribute("examDeadline");
+        session.removeAttribute("examInfo"); session.removeAttribute("examExamId");
         examConcurrencyService.leave(session.getId());
-        return Result.ok(scoreService.getResultMessage(totalScore, maxScore), details);
+        return Result.ok(details.get(details.size()-1).get("message").toString(), details);
     }
 
     /** 获取当前在线考试人数 */
@@ -262,5 +254,20 @@ public class ExamController {
         Users user = (Users) session.getAttribute("user");
         if (user == null) return Result.fail(401, "请先登录");
         return Result.ok("ok", examRecordService.findWrongAnswers(user.getUserId()));
+    }
+
+    // ===== 人工批阅 =====
+
+    /** 管理员端：获取所有待批阅的简答题记录 */
+    @GetMapping("/pendingReviews")
+    public Result pendingReviews() {
+        return Result.ok("ok", examRecordService.findPendingReviews());
+    }
+
+    /** 管理员端：对简答题打分 */
+    @PostMapping("/manualScore")
+    public Result manualScore(@RequestParam Integer recordId, @RequestParam Integer score) {
+        examRecordService.updateManualScore(recordId, score);
+        return Result.ok("批阅成功");
     }
 }

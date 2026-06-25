@@ -12,7 +12,7 @@ public interface ExamRecordMapper {
     @Select("SELECT COUNT(DISTINCT examTime) FROM exam_record WHERE userId=#{userId} AND examId=#{examId}")
     int countAttempts(@Param("userId") Integer userId, @Param("examId") Integer examId);
 
-    @Insert("INSERT INTO exam_record(userId, questionId, userAnswer, isCorrect, score, examId) VALUES(#{userId}, #{questionId}, #{userAnswer}, #{isCorrect}, #{score}, #{examId})")
+    @Insert("INSERT INTO exam_record(userId, questionId, userAnswer, isCorrect, score, examId, review_status, manual_score) VALUES(#{userId}, #{questionId}, #{userAnswer}, #{isCorrect}, #{score}, #{examId}, #{reviewStatus}, #{manualScore})")
     @Options(useGeneratedKeys = true, keyProperty = "recordId")
     int insert(ExamRecord record);
 
@@ -60,4 +60,18 @@ public interface ExamRecordMapper {
             "WHERE er.userId = #{userId} AND er.isCorrect = 0 " +
             "ORDER BY ex.name, er.examTime DESC")
     List<Map<String, Object>> findWrongAnswers(@Param("userId") Integer userId);
+
+    /** 管理员：获取所有待批阅的简答题 */
+    @Select("SELECT er.recordId, er.userId, er.questionId, er.userAnswer, er.examId, er.examTime, " +
+            "u.userName, q.title, q.answer as referenceAnswer, q.score as maxScore, ex.name as examName " +
+            "FROM exam_record er " +
+            "LEFT JOIN users u ON er.userId = u.userId " +
+            "LEFT JOIN question q ON er.questionId = q.questionId " +
+            "LEFT JOIN exam ex ON er.examId = ex.examId " +
+            "WHERE er.review_status = 1 ORDER BY er.examTime DESC")
+    List<Map<String, Object>> findPendingReviews();
+
+    /** 管理员：批阅打分 */
+    @Update("UPDATE exam_record SET manual_score = #{score}, review_status = 2 WHERE recordId = #{recordId}")
+    int updateManualScore(@Param("recordId") Integer recordId, @Param("score") Integer score);
 }

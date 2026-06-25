@@ -54,4 +54,14 @@ public class ExamRecordService {
     public List<Map<String, Object>> findWrongAnswers(Integer userId) {
         return examRecordMapper.findWrongAnswers(userId);
     }
+
+    /** 管理员：待批阅简答题 */
+    public List<Map<String, Object>> findPendingReviews() {
+        return examRecordMapper.findPendingReviews();
+    }
+
+    /** 管理员：批阅打分 */
+    public void updateManualScore(Integer recordId, Integer score) {
+        examRecordMapper.updateManualScore(recordId, score);
+    }
 }
