@@ -46,7 +46,7 @@ public interface UserMapper {
 
     @Select("SELECT u.userId, u.userName, u.real_name as realName, u.sex, u.email, c.class_name as className, " +
             "ex.examId, ex.name as examName, " +
-            "COALESCE(SUM(er.score), 0) as totalScore, COUNT(er.recordId) as answerCount, MAX(er.examTime) as lastExamTime " +
+            "COALESCE(SUM(er.score + COALESCE(er.manual_score, 0)), 0) as totalScore, COUNT(er.recordId) as answerCount, MAX(er.examTime) as lastExamTime " +
             "FROM users u CROSS JOIN exam ex " +
             "LEFT JOIN exam_record er ON er.userId = u.userId AND er.examId = ex.examId " +
             "LEFT JOIN sys_class c ON u.class_id = c.class_id " +
