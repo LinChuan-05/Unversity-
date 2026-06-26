@@ -61,6 +61,7 @@ public class ExamController {
 
     // 学生端：进入指定科目的考试
     @GetMapping("/rand")
+    @SuppressWarnings("unchecked")
     public Result rand(@RequestParam Integer examId, HttpSession session) {
         Exam exam = examManageService.findById(examId);
         if (exam == null) {
@@ -115,7 +116,7 @@ public class ExamController {
         session.setAttribute("examInfo", exam);
         session.setAttribute("examExamId", examId);
 
-        int maxScore = 100;
+        int maxScore = questions.stream().mapToInt(q -> q.getScore() != null ? q.getScore() : 20).sum();
 
         Map<String, Object> extra = new LinkedHashMap<>();
         extra.put("questions", questions);
@@ -267,7 +268,7 @@ public class ExamController {
     /** 管理员端：对简答题打分 */
     @PostMapping("/manualScore")
     public Result manualScore(@RequestParam Integer recordId, @RequestParam Integer score) {
-        if (score < 0 || score > 40) return Result.fail(400, "分数需在 0-40 之间");
+        if (score < 0) return Result.fail(400, "分数不能为负数");
         examRecordService.updateManualScore(recordId, score);
         return Result.ok("批阅成功");
     }

@@ -40,7 +40,7 @@
                     <p><b>学生作答：</b><span class="text-primary">${r.userAnswer||'(未作答)'}</span></p>
                     <div class="input-group" style="max-width:200px">
                         <input type="number" class="form-control form-control-sm score-input" id="score_${r.recordId}" min="0" max="${r.maxScore||40}" placeholder="打分">
-                        <button class="btn btn-success btn-sm" onclick="grade(${r.recordId})">确认评分</button>
+                        <button class="btn btn-success btn-sm" onclick="grade(${r.recordId},${r.maxScore||20})">确认评分</button>
                     </div>
                 </div>
             </div>`;
@@ -48,10 +48,10 @@
         document.getElementById('reviewArea').innerHTML = html;
     }
 
-    async function grade(recordId){
+    async function grade(recordId, maxScore){
         const score = parseInt(document.getElementById('score_'+recordId).value);
         if(isNaN(score)){ alert('请输入分数'); return; }
-        if(score < 0 || score > 40){ alert('分数需在 0-40 之间'); return; }
+        if(score < 0 || score > maxScore){ alert('分数需在 0-' + maxScore + ' 之间'); return; }
         const res = await $post('/api/exam/manualScore', {recordId, score});
         document.getElementById('msg').innerText = res.msg;
         if(res.code===200){

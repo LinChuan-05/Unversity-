@@ -30,7 +30,7 @@ public interface ExamRecordMapper {
 
     /** 学生个人成绩汇总：按考试场次分组，含批阅状态 */
     @Select("SELECT er.examTime, er.examId, ex.name as examName, " +
-            "SUM(er.score + COALESCE(er.manual_score, 0)) as totalScore, " +
+            "COALESCE(SUM(er.score), 0) + COALESCE(SUM(er.manual_score), 0) as totalScore, " +
             "SUM(CASE WHEN er.review_status = 1 THEN 1 ELSE 0 END) as pendingCount, " +
             "COUNT(*) as questionCount, MAX(ex.duration) as duration " +
             "FROM exam_record er LEFT JOIN exam ex ON er.examId = ex.examId " +
